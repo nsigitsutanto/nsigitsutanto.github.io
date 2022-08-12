@@ -14,13 +14,11 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 title: MM
-email:
+email: nsigitsutanto@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
-twitter_username: username
-github_username: username
+  Mechanical graduate being data practioner.
+twitter_username: nsigitsutanto
+github_username: nsigitsutanto
 minimal_mistakes_skin: default
 search: true
 
@@ -58,34 +56,40 @@ plugins:
   - jekyll-include-cache
 
 author:
-  name   : "First Lastname"
+  name   : "Nicodemus Sigit Sutanto"
   avatar : "/assets/images/bio-photo.jpg"
-  bio    : "My awesome biography constrained to a sentence or two goes here."
+  bio    : "Mechanical graduate being data practioner."
   links:
-    - label: "Website"
+    - label: "Home"
       icon: "fas fa-fw fa-link"
-      url: "https://"
+      url: "https://nsigitsutanto.github.io"
     - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/"
+      url: "https://twitter.com/nsigitsutanto"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/"
+      url: "https://github.com/nsigitsutanto"
     - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
-      url: "https://instagram.com/"
+      url: "https://instagram.com/nsigitsutanto"
+    - label: "Youtube"
+      icon: "fa fa-youtube-play"
+      url: "https://www.youtube.com/channel/UCYdtad0icuOZ16Q1et-znQw"
+    - label: "Youtube"
+      icon: "fa fa-youtube-play"
+      url: "https://www.youtube.com/channel/UCxOh1W2FOm9x1UhRObhSzWA"
 
 footer:
   links:
     - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/"
+      url: "https://twitter.com/nsigitsutanto"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/"
+      url: "https://github.com/nsigitsutanto"
     - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
-      url: "https://instagram.com/"
+      url: "https://instagram.com/nsigitsutanto"
 
 defaults:
   # _posts
