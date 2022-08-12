@@ -59,6 +59,7 @@ author:
   name   : "Nicodemus Sigit Sutanto"
   avatar : "/assets/images/bio-photo.jpg"
   bio    : "Mechanical graduate being data practioner."
+  location : "Jakarta - Milan"
   links:
     - label: "Home"
       icon: "fas fa-fw fa-link"
