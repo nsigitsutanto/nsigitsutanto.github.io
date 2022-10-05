@@ -1,0 +1,1300 @@
+---
+title: "Helpbook Otomasi Report Finance"
+author: "Nicodemus Sigit Sutanto"
+date: "8/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      results = F)
+```
+
+# 1 Pendahuluan
+
+Setiap bulannya, tim Finance melakukan pembuatan dan pengiriman report ke semua departemen dan divisi di NFI. Adapun report yang dikirim ada 5 jenis yaitu:
+
+  1. Realisasi vs Budget per Dept (untuk departemen)
+  2. Report Actual (untuk departemen)
+  3. Report Encum (untuk departemen)
+  4. Report Pengguna (untuk departemen)
+  5. Report Divisi (untuk divisi)
+
+# 2 Masalah & Solusi
+
+Di NFI terdapat total 118 departemen dan 24 divisi yang mana berarti setiap bulan perlu membuat report sebanyak 496 buah yang menghabiskan waktu sebanyak 25 jam. Proses pembuatan report pun masih manual copy-paste, sehingga rawan terjadi kesalahan copy. Oleh karena itu, perlu dibuat algoritma untuk otomasi pembuatan report ini. Dari test pertama algoritma otomasi, pembuatan semua report membutuhkan waktu kurang dari 15 menit untuk sekali running nya.
+
+# 3 Langkah Awal
+
+## 3.1 Persiapan "Infrastruktur Data"
+
+"Infrastruktur Data" yang dimaksud di sini adalah folder-folder yang nantinya akan digunakan sebagai tempat penampungan file-file mentah yang akan dijadikan report dan juga file-file report yang dibuat oleh algoritma otomasi. Berikut adalah folder-folder yang dibutuhkan:
+
+![](folder 1a.png){width="546"}
+
+Fungsi dari masing-masing folder adalah sebagai berikut:
+
+  1. All Report: tempat menaruh report hasil pengolahan algoritma otomasi yang sudah dibagi per bulan dan per divisi (akan dijelaskan lebih lanjut di bawah)
+  2. *master modified*: tempat menaruh master report yang sudah jadi dan dimodif (apabila ada perubahan)
+  3. raw Actual: tempat menaruh report mentah Actual dari Oracle dalam bentuk file xlsx.
+  4. raw Encum: tempat menaruh report mentah Encum dari Oracle dalam bentuk file xlsx.
+  5. raw FSG: tempat menaruh report mentah FSG dari Oracle dalam bentuk file xlsx.
+  6. raw Report Pengguna: tempat menaruh report mentah Report Pengguna dari Oracle dalam bentuk file xlsx.
+  7. contoh docs: tempat menaruh kamus untuk vlookup data penjelasan dari kode di dokumen tarikan Oracle.
+  
+Di dalam folder All Report ada tingkatan folder seperti berikut:
+
+  1. Bulan
+  ![](folder 2.png){width="546"}
+  2. Jenis report 
+  ![](folder 3.png){width="546"}
+  3. Divisi (kecuali Report Divisi, tidak ada pembagian folder per divisi)
+  ![](folder 4.png){width="546"}
+  4. Departemen
+  ![](folder 5.png){width="546"}
+
+## 3.2 Flow Chart Processing Data
+
+Secara umum, pengolahan data untuk report Finance adalah sebagai berikut.
+
+
+```{r echo=F,results=T}
+DiagrammeR::grViz("digraph {
+  graph [layout = dot, rankdir = TB]
+  
+  node [shape = rectangle]        
+  rec1 [label = 'Step 1. Pengumpulan Data Mentah dari Oracle ke Folder Jenis Report dan Kamus di Folder contoh docs']
+  rec2a [label = 'Step 2a. Menjalankan Script Master FSG']
+  rec2b [label = 'Step 2b. Menjalankan Script Master Actual']
+  rec2c [label = 'Step 2c. Menjalankan Script Master Encum']
+  rec2d [label = 'Step 2d. Menjalankan Script Master Report Pengguna']
+  rec3 [label = 'Step 3. Pemindahan File Master Hasil Otomasi ke Folder *master modified*']
+  rec4 [label = 'Step 4. Script akan Menarik Semua Master Hasil Otomasi']
+  rec5 [label = 'Step 5. Pembagian Master FSG Per Quarter']
+  rec6 [label = 'Step 6. Pembagian Report FSG , Actual dan Encum Per Dept untuk Dept Plant']
+  rec7 [label = 'Step 7. Pembagian Report FSG , Actual dan Encum Per Dept untuk Dept Non-Plant']
+  rec8 [label = 'Step 8. Pembagian Report Divisi']
+  
+  # edge definitions with the node IDs
+  rec1 -> rec2a -> rec3; rec1 -> rec2b -> rec3; rec1 -> rec2c -> rec3; rec1 -> rec2d -> rec3; 
+  rec3 -> rec4 -> rec5 -> rec6 -> rec7 -> rec8
+  }")
+```
+
+# 4 Penjelasan Per Step
+
+## 4.1 Step 1. Pengumpulan Data Mentah dari Oracle ke Folder Jenis Report dan Kamus di Folder contoh docs
+
+Sudah dijelaskan di Section 3.1 Pengumpulan Data
+
+## 4.2 Step 2. Menjalankan semua Script Master
+
+### 4.2.1 Step 2a. Menjalankan Script Master FSG
+
+Script Master FSG digunakan untuk menggabungkan dan mengolah data file FSG tiap quarter-nya. Penjelasan detil script Master FSG akan dijelaskan di helpbook terpisah.
+
+### 4.2.2 Step 2b. Menjalankan Script Master Actual
+
+Script Master Actual digunakan untuk menggabungkan dan mengolah data file Actual tiap bulannya. Penjelasan detil script Master Actual akan dijelaskan di helpbook terpisah.
+
+### 4.2.3 Step 2c. Menjalankan Script Master Encum
+
+Script Master Encum digunakan untuk menggabungkan dan mengolah data file Encum tiap bulannya. Penjelasan detil script Master Encum akan dijelaskan di helpbook terpisah.
+
+### 4.2.4 Step 2d. Menjalankan Script Master Report Pengguna
+
+Script Master Report Pengguna digunakan untuk menggabungkan dan mengolah data file Report Pengguna. Penjelasan detil script Master Report Pengguna akan dijelaskan di helpbook terpisah.
+
+## 4.3 Step 3. Pemindahan File Master Hasil Otomasi ke Folder *master modified*
+
+Setelah semua file Master sudah terbuat, file Master akan dicek terlebih dulu oleh tim Finance untuk memastikan apakah sudah benar atau apakah ada update manual. Jika sudah semua file sudah dipastikan oke, maka semua file Master dipindahkan ke folder *master modified*.
+
+## 4.4 Step 4. Script akan Menarik Semua Master Hasil Otomasi
+
+Setelah semua file Master dipindahkan ke folder *master modified*, semua file Master akan ditarik script untuk mulai dilakukan pembagian report per departemen dan divisi. Data untuk kamus departemen ditaruh di folder *master modified*
+
+```{r}
+rm(list=ls())
+
+# ===============================================================================
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(stringr)
+library(splitstackshape)
+library(lubridate)
+library(openxlsx)
+library(janitor)
+options(digits=12)
+# ===============================================================================
+
+# tarik data master
+
+xlsx <- list.files(path = "master modified", 
+                   pattern = "*.xlsx",
+                   full.names = TRUE)
+xlsx <- xlsx[!grepl("\\~", xlsx)]
+
+master.actual=read_xlsx(xlsx[grepl("actual ", xlsx,ignore.case = T)]) #panggil data master actual
+master.encum=read_xlsx(xlsx[grepl("encum ", xlsx,ignore.case = T)]) #panggil data master encum
+master.fsg=read_xlsx(xlsx[grepl("fsg ", xlsx,ignore.case = T)]) #panggil data master fsg
+master.pengguna=read_xlsx(xlsx[grepl("pengguna", xlsx,ignore.case = T)]) #panggil data report pengguna
+parent.asset=read_xlsx("contoh docs/2021 - Parent Asset.xlsx") %>% select(-1) #panggil parent asset
+list.dept=read_xlsx(xlsx[grepl("pembagian ", xlsx,ignore.case = T)]) #panggil data kamus departemen
+list.dept.nonplant=list.dept[!grepl('^[FGPX]', list.dept$Dept),] #filtering hanya departemen non plant
+list.dept.plant=list.dept[grep('^[FGPX]', list.dept$Dept),] #filtering hanya departemen plant
+list.bulan=c("01 Jan","02 Feb","03 Mar","04 Apr","05 May","06 Jun",
+             "07 Jul","08 Aug","09 Sep","10 Oct","11 Nov","12 Dec") #pembuatan list bulan untuk penamaan folder
+list.no.bulan=c("01","02","03","04","05","06",
+                "07","08","09","10","11","12") #pembuatan list bulan untuk penamaan file
+```
+
+## 4.5 Step 5. Pembagian Master FSG Per Quarter
+
+Master FSG yang sudah ditarik kemudian dibagi per quarter. Nomor pada bagi select di tiap perintah **if** me-refer pada nomor kolom yang ada di master FSG. Kolom 1-14 me-refer pada kolom informasi (quarter,divisi,kategori, dll) pada master FSG. Kolom sisanya adalah kolom YTD untuk masing-masing quarter dan quarter 4.
+
+```{r}
+# pembagian master FSG per quarter
+
+fsg=list()
+
+for(z in 1:4){
+  
+  if(z==1){
+    temp=master.fsg %>% 
+      select(1:14,30:34,105:109)
+    
+    fsg[[z]]<-temp
+  }
+  
+  if(z==2){
+    temp=master.fsg %>% 
+      select(1:14,55:59,105:109)
+    
+    fsg[[z]]<-temp
+  }
+  
+  if(z==3){
+    temp=master.fsg %>% 
+      select(1:14,80:84,105:109)
+    
+    fsg[[z]]<-temp
+  }
+  
+  if(z==4){
+    temp=master.fsg %>% 
+      select(1:14,105:109)
+    
+    fsg[[z]]<-temp
+  }
+  
+}
+```
+
+## 4.6 Step 6. Pembagian Report FSG , Actual dan Encum Per Dept untuk Dept Plant
+
+Master FSG yang sudah dibagi per quarter kemudian dibagi per departemen, menyesuaikan bulan dan quarternya. Master FSG yang dibagi per departemen menampilkan data dari bulan pertama sampai dengan bulan sebelum bulan berjalan. 
+Untuk master Actual dan Encum, data yang dibagi per departemen menampilkan data dari bulan pertama sampai dengan bulan berjalan. 
+Untuk master Report Pengguna, data dibagi berdasarkan Dept Pemilik.
+
+```{r}
+#pembagian untuk dept plant
+
+deptx=unique(list.dept.plant$Dept)
+
+for(x in 1:length(deptx)){ 
+  
+  for(j in 1:(month(Sys.Date())-1)){
+    
+    wb <- createWorkbook()
+    
+    if(j<4){ #pembagian FSG untuk bulan quarter 1
+      temp.fsg=fsg[[1]] %>% select(dept,
+                                   kategori,
+                                   NFI_ACCOUNT,
+                                   lokasi,
+                                   desc.lokasi,
+                                   `YTD-Budget Q1`,
+                                   `YTD-Encum Obl Q1`,
+                                   `YTD-Encum Inv Q1`,
+                                   `YTD-Actual Q1`,
+                                   `Under (Over) Budget YTD Q1`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(dept==deptx[x]) %>% #filter departemen
+        group_by(kategori,NFI_ACCOUNT,lokasi,desc.lokasi) %>% 
+        summarise(`YTD-Budget Q1`=sum(`YTD-Budget Q1`),
+                  `YTD-Encum Obl Q1`=sum(`YTD-Encum Obl Q1`),
+                  `YTD-Encum Inv Q1`=sum(`YTD-Encum Inv Q1`),
+                  `YTD-Actual Q1`=sum(`YTD-Actual Q1`),
+                  `Under (Over) Budget YTD Q1`=sum(`Under (Over) Budget YTD Q1`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q1`=`YTD-Encum Obl Q1`+`YTD-Encum Inv Q1`+`YTD-Actual Q1`) %>% 
+        select(-6:-8) %>% 
+        select(1:5,8,6,7)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){ #pivoting nilai-nilai di data FSG untuk kategori Asset
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              mutate(`Ledger Acc Desc`=gsub('[0-9]+ ', '', NFI_ACCOUNT)) %>% 
+              left_join(parent.asset) %>% 
+              ungroup() %>% 
+              select(1,10,3:8) %>% 
+              rename(NFI_ACCOUNT=2) %>% 
+              mutate(lokasi=NA,desc.lokasi=NA) %>% 
+              group_by(kategori,NFI_ACCOUNT,lokasi,desc.lokasi) %>% 
+              summarise(`YTD-Budget Q1`=sum(`YTD-Budget Q1`),
+                        `Total Actual YTD Q1`=sum(`Total Actual YTD Q1`),
+                        `Under (Over) Budget YTD Q1`=sum(`Under (Over) Budget YTD Q1`),
+                        `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+              ungroup() %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q1`=sum(.$`YTD-Budget Q1`,na.rm=T),
+                                               `Total Actual YTD Q1`=sum(.$`Total Actual YTD Q1`,na.rm=T),
+                                               `Under (Over) Budget YTD Q1`=sum(.$`Under (Over) Budget YTD Q1`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!is.na(kategori))
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){ #pivoting nilai-nilai di data FSG untuk kategori Expenses
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q1`=sum(.$`YTD-Budget Q1`,na.rm=T),
+                                               `Total Actual YTD Q1`=sum(.$`Total Actual YTD Q1`,na.rm=T),
+                                               `Under (Over) Budget YTD Q1`=sum(.$`Under (Over) Budget YTD Q1`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) %>% 
+              group_by(kategori,NFI_ACCOUNT) %>% 
+              do(plyr::rbind.fill(.,data_frame(NFI_ACCOUNT=paste0("Total ",first(.$NFI_ACCOUNT)),
+                                               `YTD-Budget Q1`=sum(.$`YTD-Budget Q1`,na.rm=T),
+                                               `Total Actual YTD Q1`=sum(.$`Total Actual YTD Q1`,na.rm=T),
+                                               `Under (Over) Budget YTD Q1`=sum(.$`Under (Over) Budget YTD Q1`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!grepl("total na",NFI_ACCOUNT,ignore.case = T))
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Dept-Lokasi")
+        writeData(wb,sheet = "Realisasi vs Budget Dept-Lokasi",temp.fsg2)
+      }
+    }
+    
+    if(j<7 & j>3){ #pembagian FSG untuk bulan quarter 2
+      
+      temp.fsg=fsg[[2]] %>% select(dept,
+                                   kategori,
+                                   NFI_ACCOUNT,
+                                   lokasi,
+                                   desc.lokasi,
+                                   `YTD-Budget Q2`,
+                                   `YTD-Encum Obl Q2`,
+                                   `YTD-Encum Inv Q2`,
+                                   `YTD-Actual Q2`,
+                                   `Under (Over) Budget YTD Q2`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(dept==deptx[x]) %>% #filter departemen
+        group_by(kategori,NFI_ACCOUNT,lokasi,desc.lokasi) %>% 
+        summarise(`YTD-Budget Q2`=sum(`YTD-Budget Q2`),
+                  `YTD-Encum Obl Q2`=sum(`YTD-Encum Obl Q2`),
+                  `YTD-Encum Inv Q2`=sum(`YTD-Encum Inv Q2`),
+                  `YTD-Actual Q2`=sum(`YTD-Actual Q2`),
+                  `Under (Over) Budget YTD Q2`=sum(`Under (Over) Budget YTD Q2`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q2`=`YTD-Encum Obl Q2`+`YTD-Encum Inv Q2`+`YTD-Actual Q2`) %>% 
+        select(-6:-8) %>% 
+        select(1:5,8,6,7)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){ #pivoting nilai-nilai di data FSG untuk kategori Asset
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              mutate(`Ledger Acc Desc`=gsub('[0-9]+ ', '', NFI_ACCOUNT)) %>% 
+              left_join(parent.asset) %>% 
+              ungroup() %>% 
+              select(1,10,3:8) %>% 
+              rename(NFI_ACCOUNT=2) %>% 
+              mutate(lokasi=NA,desc.lokasi=NA) %>% 
+              group_by(kategori,NFI_ACCOUNT,lokasi,desc.lokasi) %>% 
+              summarise(`YTD-Budget Q2`=sum(`YTD-Budget Q2`),
+                        `Total Actual YTD Q2`=sum(`Total Actual YTD Q2`),
+                        `Under (Over) Budget YTD Q2`=sum(`Under (Over) Budget YTD Q2`),
+                        `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+              ungroup() %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q2`=sum(.$`YTD-Budget Q2`,na.rm=T),
+                                               `Total Actual YTD Q2`=sum(.$`Total Actual YTD Q2`,na.rm=T),
+                                               `Under (Over) Budget YTD Q2`=sum(.$`Under (Over) Budget YTD Q2`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) 
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!is.na(kategori))
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){ #pivoting nilai-nilai di data FSG untuk kategori Expenses
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q2`=sum(.$`YTD-Budget Q2`,na.rm=T),
+                                               `Total Actual YTD Q2`=sum(.$`Total Actual YTD Q2`,na.rm=T),
+                                               `Under (Over) Budget YTD Q2`=sum(.$`Under (Over) Budget YTD Q2`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) %>% 
+              group_by(kategori,NFI_ACCOUNT) %>% 
+              do(plyr::rbind.fill(.,data_frame(NFI_ACCOUNT=paste0("Total ",first(.$NFI_ACCOUNT)),
+                                               `YTD-Budget Q2`=sum(.$`YTD-Budget Q2`,na.rm=T),
+                                               `Total Actual YTD Q2`=sum(.$`Total Actual YTD Q2`,na.rm=T),
+                                               `Under (Over) Budget YTD Q2`=sum(.$`Under (Over) Budget YTD Q2`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!grepl("total na",NFI_ACCOUNT,ignore.case = T))
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Dept-Lokasi")
+        writeData(wb,sheet = "Realisasi vs Budget Dept-Lokasi",temp.fsg2)
+      }
+      
+    }
+    
+    if(j<10 & j>6){ #pembagian FSG untuk bulan quarter 3
+      
+      temp.fsg=fsg[[3]] %>% select(dept,
+                                   kategori,
+                                   NFI_ACCOUNT,
+                                   lokasi,
+                                   desc.lokasi,
+                                   `YTD-Budget Q3`,
+                                   `YTD-Encum Obl Q3`,
+                                   `YTD-Encum Inv Q3`,
+                                   `YTD-Actual Q3`,
+                                   `Under (Over) Budget YTD Q3`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(dept==deptx[x]) %>% #filter departemen
+        group_by(kategori,NFI_ACCOUNT,lokasi,desc.lokasi) %>% 
+        summarise(`YTD-Budget Q3`=sum(`YTD-Budget Q3`),
+                  `YTD-Encum Obl Q3`=sum(`YTD-Encum Obl Q3`),
+                  `YTD-Encum Inv Q3`=sum(`YTD-Encum Inv Q3`),
+                  `YTD-Actual Q3`=sum(`YTD-Actual Q3`),
+                  `Under (Over) Budget YTD Q3`=sum(`Under (Over) Budget YTD Q3`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q3`=`YTD-Encum Obl Q3`+`YTD-Encum Inv Q3`+`YTD-Actual Q3`) %>% 
+        select(-6:-8) %>% 
+        select(1:5,8,6,7)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){ #pivoting nilai-nilai di data FSG untuk kategori Asset
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              mutate(`Ledger Acc Desc`=gsub('[0-9]+ ', '', NFI_ACCOUNT)) %>% 
+              left_join(parent.asset) %>% 
+              ungroup() %>% 
+              select(1,10,3:8) %>% 
+              rename(NFI_ACCOUNT=2) %>% 
+              mutate(lokasi=NA,desc.lokasi=NA) %>% 
+              group_by(kategori,NFI_ACCOUNT,lokasi,desc.lokasi) %>% 
+              summarise(`YTD-Budget Q3`=sum(`YTD-Budget Q3`),
+                        `Total Actual YTD Q3`=sum(`Total Actual YTD Q3`),
+                        `Under (Over) Budget YTD Q3`=sum(`Under (Over) Budget YTD Q3`),
+                        `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+              ungroup() %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q3`=sum(.$`YTD-Budget Q3`,na.rm=T),
+                                               `Total Actual YTD Q3`=sum(.$`Total Actual YTD Q3`,na.rm=T),
+                                               `Under (Over) Budget YTD Q3`=sum(.$`Under (Over) Budget YTD Q3`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!is.na(kategori))
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){ #pivoting nilai-nilai di data FSG untuk kategori Expenses
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q3`=sum(.$`YTD-Budget Q3`,na.rm=T),
+                                               `Total Actual YTD Q3`=sum(.$`Total Actual YTD Q3`,na.rm=T),
+                                               `Under (Over) Budget YTD Q3`=sum(.$`Under (Over) Budget YTD Q3`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) %>% 
+              group_by(kategori,NFI_ACCOUNT) %>% 
+              do(plyr::rbind.fill(.,data_frame(NFI_ACCOUNT=paste0("Total ",first(.$NFI_ACCOUNT)),
+                                               `YTD-Budget Q3`=sum(.$`YTD-Budget Q3`,na.rm=T),
+                                               `Total Actual YTD Q3`=sum(.$`Total Actual YTD Q3`,na.rm=T),
+                                               `Under (Over) Budget YTD Q3`=sum(.$`Under (Over) Budget YTD Q3`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!grepl("total na",NFI_ACCOUNT,ignore.case = T))
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Dept-Lokasi")
+        writeData(wb,sheet = "Realisasi vs Budget Dept-Lokasi",temp.fsg2)
+      }
+      
+    }
+    
+    if(j>9 ){ #pembagian FSG untuk bulan quarter 4
+      
+      temp.fsg=fsg[[4]] %>% select(dept,
+                                   kategori,
+                                   NFI_ACCOUNT,
+                                   lokasi,
+                                   desc.lokasi,
+                                   `YTD-Budget Q4`,
+                                   `YTD-Encum Obl Q4`,
+                                   `YTD-Encum Inv Q4`,
+                                   `YTD-Actual Q4`,
+                                   `Under (Over) Budget YTD Q4`) %>% 
+        filter(dept==deptx[x]) %>% #filter departemen
+        group_by(kategori,NFI_ACCOUNT,lokasi,desc.lokasi) %>% 
+        summarise(`YTD-Budget Q4`=sum(`YTD-Budget Q4`),
+                  `YTD-Encum Obl Q4`=sum(`YTD-Encum Obl Q4`),
+                  `YTD-Encum Inv Q4`=sum(`YTD-Encum Inv Q4`),
+                  `YTD-Actual Q4`=sum(`YTD-Actual Q4`),
+                  `Under (Over) Budget YTD Q4`=sum(`Under (Over) Budget YTD Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q4`=`YTD-Encum Obl Q4`+`YTD-Encum Inv Q4`+`YTD-Actual Q4`) %>% 
+        select(-6:-8) %>% 
+        select(1:5,7,6)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){ #pivoting nilai-nilai di data FSG untuk kategori Asset
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              mutate(`Ledger Acc Desc`=gsub('[0-9]+ ', '', NFI_ACCOUNT)) %>% 
+              left_join(parent.asset) %>% 
+              ungroup() %>% 
+              select(1,9,3:7) %>% 
+              rename(NFI_ACCOUNT=2) %>% 
+              mutate(lokasi=NA,desc.lokasi=NA) %>% 
+              group_by(kategori,NFI_ACCOUNT,lokasi,desc.lokasi) %>% 
+              summarise(`YTD-Budget Q4`=sum(`YTD-Budget Q4`),
+                        `Total Actual YTD Q4`=sum(`Total Actual YTD Q4`),
+                        `Under (Over) Budget YTD Q4`=sum(`Under (Over) Budget YTD Q4`)) %>% 
+              ungroup() %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T),
+                                               `Total Actual YTD Q4`=sum(.$`Total Actual YTD Q4`,na.rm=T),
+                                               `Under (Over) Budget YTD Q4`=sum(.$`Under (Over) Budget YTD Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1)
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){ #pivoting nilai-nilai di data FSG untuk kategori Expenses
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T),
+                                               `Total Actual YTD Q4`=sum(.$`Total Actual YTD Q4`,na.rm=T),
+                                               `Under (Over) Budget YTD Q4`=sum(.$`Under (Over) Budget YTD Q4`,na.rm=T)))) %>% 
+              group_by(kategori,NFI_ACCOUNT) %>% 
+              do(plyr::rbind.fill(.,data_frame(NFI_ACCOUNT=paste0("Total ",first(.$NFI_ACCOUNT)),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T),
+                                               `Total Actual YTD Q4`=sum(.$`Total Actual YTD Q4`,na.rm=T),
+                                               `Under (Over) Budget YTD Q4`=sum(.$`Under (Over) Budget YTD Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!grepl("total na",NFI_ACCOUNT,ignore.case = T))
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Dept-Lokasi")
+        writeData(wb,sheet = "Realisasi vs Budget Dept-Lokasi",temp.fsg2)
+      }
+      
+    }
+    
+    test1=master.actual %>% 
+      filter(month(`GL date`) %in% (1:(j+1))) %>% #filter bulan pertama sampe bulan berjalan
+      filter(`Dept Pemilik`==deptx[x]) %>% #filter departemen
+      filter(Klasifikasi!="Other") %>% 
+      arrange(`GL date`)
+    
+    addWorksheet(wb, "Detail Actual")
+    writeData(wb,sheet = "Detail Actual",test1)
+    
+    test2=master.encum %>% 
+      filter(month(`GL date`)%in% (1:(j+1))) %>% #filter bulan pertama sampe bulan berjalan
+      filter(`Dept Pemilik`==deptx[x]) %>% #filter departemen
+      filter(Klasifikasi!="Other")%>% 
+      arrange(`GL date`)
+    
+    addWorksheet(wb, "Detail Encum")
+    writeData(wb,sheet = "Detail Encum",test2)
+    
+    saveWorkbook(wb, file = paste0("All Report/",list.bulan[j]," ",format.Date(Sys.Date(), "%y"),"/01 Report Realisasi vs Budget/",list.dept.plant$`Folder Divisi`[x],"/",list.no.bulan[j]," ",list.dept.plant$Dept[x],".xlsx"), overwrite = TRUE)
+    print(paste0("file Realisasi vs Budget bulan ",list.bulan[j]," ",format.Date(Sys.Date(), "%y")," untuk div.",list.dept.plant$`Folder Divisi`[x]," dept. ",list.dept.plant$Dept[x]," berhasil dibuat."))
+    
+    # cetak report pengguna
+    temp.pengguna=master.pengguna %>% select(`Dept Pengguna`,
+                                             `Divisi Pemilik`,
+                                             `Dept Pemilik`,
+                                             desc.akun,
+                                             8:20) %>% 
+      rename(Jan=5,Feb=6,Mar=7,Apr=8,May=9,Jun=10,Jul=11,Aug=12,Sep=13,Oct=14,Nov=15,Dec=16) %>% 
+      filter(`Dept Pengguna`==deptx[x]) %>% #filter departemen
+      group_by(`Dept Pengguna`,`Divisi Pemilik`,`Dept Pemilik`,desc.akun) %>% 
+      summarise(`Jan`=sum(`Jan`),
+                `Feb`=sum(`Feb`),
+                `Mar`=sum(`Mar`),
+                `Apr`=sum(`Apr`),
+                `May`=sum(`May`),
+                `Jun`=sum(`Jun`),
+                `Jul`=sum(`Jul`),
+                `Aug`=sum(`Aug`),
+                `Sep`=sum(`Sep`),
+                `Oct`=sum(`Oct`),
+                `Nov`=sum(`Nov`),
+                `Dec`=sum(`Dec`),
+                Total=sum(Total))
+    templist=list()
+    tempkat=unique(temp.pengguna$`Dept Pemilik`)
+    if(length(tempkat)>0){
+      for(i in 1:length(tempkat)){
+        temp.pengguna1=temp.pengguna %>% 
+          filter(`Dept Pemilik`==tempkat[i]) %>% 
+          group_by(`Dept Pemilik`) %>% 
+          do(plyr::rbind.fill(.,data_frame(`Dept Pemilik`=paste0("Total ",first(.$`Dept Pemilik`)),
+                                           `Jan`=sum(.$`Jan`,na.rm=T),
+                                           `Feb`=sum(.$`Feb`,na.rm=T),
+                                           `Mar`=sum(.$`Mar`,na.rm=T),
+                                           `Apr`=sum(.$`Apr`,na.rm=T),
+                                           `May`=sum(.$`May`,na.rm=T),
+                                           `Jun`=sum(.$`Jun`,na.rm=T),
+                                           `Jul`=sum(.$`Jul`,na.rm=T),
+                                           `Aug`=sum(.$`Aug`,na.rm=T),
+                                           `Sep`=sum(.$`Sep`,na.rm=T),
+                                           `Oct`=sum(.$`Oct`,na.rm=T),
+                                           `Nov`=sum(.$`Nov`,na.rm=T),
+                                           `Dec`=sum(.$`Dec`,na.rm=T),
+                                           Total=sum(.$Total,na.rm=T))))
+        kolom_final = c(colnames(temp.pengguna1)[1],
+                        colnames(temp.pengguna1)[2],
+                        colnames(temp.pengguna1)[3],
+                        colnames(temp.pengguna1)[4],
+                        paste(colnames(temp.pengguna1)[5],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[6],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[7],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[8],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[9],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[10],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[11],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[12],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[13],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[14],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[15],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[16],"-",format.Date(Sys.Date(), "%y")),
+                        colnames(temp.pengguna1)[17]
+        )
+        colnames(temp.pengguna1) = kolom_final
+        templist[[i]]=temp.pengguna1
+      }
+      temp.pengguna2<-do.call(plyr::rbind.fill,templist)
+      write.xlsx(temp.pengguna2,paste0("All Report/",list.bulan[j]," ",format.Date(Sys.Date(), "%y"),"/02 Report Pengguna/",list.dept.plant$`Folder Divisi`[x],"/",list.no.bulan[j]," ",list.dept.plant$Dept[x]," RP.xlsx"), overwrite = TRUE)
+      print(paste0("file Report Pengguna bulan ",list.bulan[j]," ",format.Date(Sys.Date(), "%y")," untuk div.",list.dept.plant$`Folder Divisi`[x]," dept. ",list.dept.plant$Dept[x]," berhasil dibuat."))
+    }
+    else
+      print(paste0("file Report Pengguna bulan ",list.bulan[j]," ",format.Date(Sys.Date(), "%y")," untuk div.",list.dept.plant$`Folder Divisi`[x]," dept. ",list.dept.plant$Dept[x]," tidak tersedia."))
+  }
+}
+```
+
+## 4.7 Step 7. Report FSG , Actual dan Encum Per Dept untuk Dept Non-Plant
+
+Proses step ini dan logika pemrogramannya sama persis dengan step sebelumnya. Yang membedakan hanya pembagian departemennya yaitu departemen non-plant.
+
+```{r}
+#pembagian untuk dept non-plant
+
+deptx=unique(list.dept.nonplant$Dept)
+
+for(x in 1:length(deptx)){ #
+  
+  for(j in 1:(month(Sys.Date())-1)){
+    
+    wb <- createWorkbook()
+    
+    if(j<4){
+      temp.fsg=fsg[[1]] %>% select(dept,
+                                   kategori,
+                                   NFI_ACCOUNT,
+                                   `detail akun`,
+                                   desc.detail,
+                                   `YTD-Budget Q1`,
+                                   `YTD-Encum Obl Q1`,
+                                   `YTD-Encum Inv Q1`,
+                                   `YTD-Actual Q1`,
+                                   `Under (Over) Budget YTD Q1`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(dept==deptx[x]) %>% 
+        group_by(kategori,NFI_ACCOUNT,`detail akun`,desc.detail) %>% 
+        summarise(`YTD-Budget Q1`=sum(`YTD-Budget Q1`),
+                  `YTD-Encum Obl Q1`=sum(`YTD-Encum Obl Q1`),
+                  `YTD-Encum Inv Q1`=sum(`YTD-Encum Inv Q1`),
+                  `YTD-Actual Q1`=sum(`YTD-Actual Q1`),
+                  `Under (Over) Budget YTD Q1`=sum(`Under (Over) Budget YTD Q1`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q1`=`YTD-Encum Obl Q1`+`YTD-Encum Inv Q1`+`YTD-Actual Q1`) %>% 
+        select(-6:-8) %>% 
+        select(1:5,8,6,7)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              mutate(`Ledger Acc Desc`=gsub('[0-9]+ ', '', NFI_ACCOUNT)) %>% 
+              left_join(parent.asset) %>% 
+              ungroup() %>% 
+              select(1,10,3:8) %>% 
+              rename(NFI_ACCOUNT=2) %>% 
+              mutate(`detail akun`=NA,desc.detail=NA) %>% 
+              group_by(kategori,NFI_ACCOUNT,`detail akun`,desc.detail) %>% 
+              summarise(`YTD-Budget Q1`=sum(`YTD-Budget Q1`),
+                        `Total Actual YTD Q1`=sum(`Total Actual YTD Q1`),
+                        `Under (Over) Budget YTD Q1`=sum(`Under (Over) Budget YTD Q1`),
+                        `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q1`=sum(.$`YTD-Budget Q1`,na.rm=T),
+                                               `Total Actual YTD Q1`=sum(.$`Total Actual YTD Q1`,na.rm=T),
+                                               `Under (Over) Budget YTD Q1`=sum(.$`Under (Over) Budget YTD Q1`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!is.na(kategori))
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q1`=sum(.$`YTD-Budget Q1`,na.rm=T),
+                                               `Total Actual YTD Q1`=sum(.$`Total Actual YTD Q1`,na.rm=T),
+                                               `Under (Over) Budget YTD Q1`=sum(.$`Under (Over) Budget YTD Q1`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) %>% 
+              group_by(kategori,NFI_ACCOUNT) %>% 
+              do(plyr::rbind.fill(.,data_frame(NFI_ACCOUNT=paste0("Total ",first(.$NFI_ACCOUNT)),
+                                               `YTD-Budget Q1`=sum(.$`YTD-Budget Q1`,na.rm=T),
+                                               `Total Actual YTD Q1`=sum(.$`Total Actual YTD Q1`,na.rm=T),
+                                               `Under (Over) Budget YTD Q1`=sum(.$`Under (Over) Budget YTD Q1`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!grepl("total na",NFI_ACCOUNT,ignore.case = T))
+            templist[[i]]=temp.fsg1
+          }
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Dept")
+        writeData(wb,sheet = "Realisasi vs Budget Dept",temp.fsg2)
+      }
+      
+    }
+    
+    if(j<7 & j>3){
+      
+      temp.fsg=fsg[[2]] %>% select(dept,
+                                   kategori,
+                                   NFI_ACCOUNT,
+                                   `detail akun`,
+                                   desc.detail,
+                                   `YTD-Budget Q2`,
+                                   `YTD-Encum Obl Q2`,
+                                   `YTD-Encum Inv Q2`,
+                                   `YTD-Actual Q2`,
+                                   `Under (Over) Budget YTD Q2`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(dept==deptx[x]) %>% 
+        group_by(kategori,NFI_ACCOUNT,`detail akun`,desc.detail) %>% 
+        summarise(`YTD-Budget Q2`=sum(`YTD-Budget Q2`),
+                  `YTD-Encum Obl Q2`=sum(`YTD-Encum Obl Q2`),
+                  `YTD-Encum Inv Q2`=sum(`YTD-Encum Inv Q2`),
+                  `YTD-Actual Q2`=sum(`YTD-Actual Q2`),
+                  `Under (Over) Budget YTD Q2`=sum(`Under (Over) Budget YTD Q2`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q2`=`YTD-Encum Obl Q2`+`YTD-Encum Inv Q2`+`YTD-Actual Q2`) %>% 
+        select(-6:-8) %>% 
+        select(1:5,8,6,7)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              mutate(`Ledger Acc Desc`=gsub('[0-9]+ ', '', NFI_ACCOUNT)) %>% 
+              left_join(parent.asset) %>% 
+              ungroup() %>% 
+              select(1,10,3:8) %>% 
+              rename(NFI_ACCOUNT=2) %>% 
+              mutate(`detail akun`=NA,desc.detail=NA) %>% 
+              group_by(kategori,NFI_ACCOUNT,`detail akun`,desc.detail) %>% 
+              summarise(`YTD-Budget Q2`=sum(`YTD-Budget Q2`),
+                        `Total Actual YTD Q2`=sum(`Total Actual YTD Q2`),
+                        `Under (Over) Budget YTD Q2`=sum(`Under (Over) Budget YTD Q2`),
+                        `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+              ungroup() %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q2`=sum(.$`YTD-Budget Q2`,na.rm=T),
+                                               `Total Actual YTD Q2`=sum(.$`Total Actual YTD Q2`,na.rm=T),
+                                               `Under (Over) Budget YTD Q2`=sum(.$`Under (Over) Budget YTD Q2`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) 
+            temp.fsg1=as.data.frame(temp.fsg1)
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q2`=sum(.$`YTD-Budget Q2`,na.rm=T),
+                                               `Total Actual YTD Q2`=sum(.$`Total Actual YTD Q2`,na.rm=T),
+                                               `Under (Over) Budget YTD Q2`=sum(.$`Under (Over) Budget YTD Q2`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) %>% 
+              group_by(kategori,NFI_ACCOUNT) %>% 
+              do(plyr::rbind.fill(.,data_frame(NFI_ACCOUNT=paste0("Total ",first(.$NFI_ACCOUNT)),
+                                               `YTD-Budget Q2`=sum(.$`YTD-Budget Q2`,na.rm=T),
+                                               `Total Actual YTD Q2`=sum(.$`Total Actual YTD Q2`,na.rm=T),
+                                               `Under (Over) Budget YTD Q2`=sum(.$`Under (Over) Budget YTD Q2`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!grepl("total na",NFI_ACCOUNT,ignore.case = T))
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Dept")
+        writeData(wb,sheet = "Realisasi vs Budget Dept",temp.fsg2)
+      }
+      
+    }
+    
+    if(j<10 & j>6){
+      
+      temp.fsg=fsg[[3]] %>% select(dept,
+                                   kategori,
+                                   NFI_ACCOUNT,
+                                   `detail akun`,
+                                   desc.detail,
+                                   `YTD-Budget Q3`,
+                                   `YTD-Encum Obl Q3`,
+                                   `YTD-Encum Inv Q3`,
+                                   `YTD-Actual Q3`,
+                                   `Under (Over) Budget YTD Q3`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(dept==deptx[x]) %>% 
+        group_by(kategori,NFI_ACCOUNT,`detail akun`,desc.detail) %>% 
+        summarise(`YTD-Budget Q3`=sum(`YTD-Budget Q3`),
+                  `YTD-Encum Obl Q3`=sum(`YTD-Encum Obl Q3`),
+                  `YTD-Encum Inv Q3`=sum(`YTD-Encum Inv Q3`),
+                  `YTD-Actual Q3`=sum(`YTD-Actual Q3`),
+                  `Under (Over) Budget YTD Q3`=sum(`Under (Over) Budget YTD Q3`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q3`=`YTD-Encum Obl Q3`+`YTD-Encum Inv Q3`+`YTD-Actual Q3`) %>% 
+        select(-6:-8) %>% 
+        select(1:5,8,6,7)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              mutate(`Ledger Acc Desc`=gsub('[0-9]+ ', '', NFI_ACCOUNT)) %>% 
+              left_join(parent.asset) %>% 
+              ungroup() %>% 
+              select(1,10,3:8) %>% 
+              rename(NFI_ACCOUNT=2) %>% 
+              mutate(`detail akun`=NA,desc.detail=NA) %>% 
+              group_by(kategori,NFI_ACCOUNT,`detail akun`,desc.detail) %>% 
+              summarise(`YTD-Budget Q3`=sum(`YTD-Budget Q3`),
+                        `Total Actual YTD Q3`=sum(`Total Actual YTD Q3`),
+                        `Under (Over) Budget YTD Q3`=sum(`Under (Over) Budget YTD Q3`),
+                        `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+              ungroup() %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q3`=sum(.$`YTD-Budget Q3`,na.rm=T),
+                                               `Total Actual YTD Q3`=sum(.$`Total Actual YTD Q3`,na.rm=T),
+                                               `Under (Over) Budget YTD Q3`=sum(.$`Under (Over) Budget YTD Q3`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) 
+            temp.fsg1=as.data.frame(temp.fsg1)
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q3`=sum(.$`YTD-Budget Q3`,na.rm=T),
+                                               `Total Actual YTD Q3`=sum(.$`Total Actual YTD Q3`,na.rm=T),
+                                               `Under (Over) Budget YTD Q3`=sum(.$`Under (Over) Budget YTD Q3`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) %>% 
+              group_by(kategori,NFI_ACCOUNT) %>% 
+              do(plyr::rbind.fill(.,data_frame(NFI_ACCOUNT=paste0("Total ",first(.$NFI_ACCOUNT)),
+                                               `YTD-Budget Q3`=sum(.$`YTD-Budget Q3`,na.rm=T),
+                                               `Total Actual YTD Q3`=sum(.$`Total Actual YTD Q3`,na.rm=T),
+                                               `Under (Over) Budget YTD Q3`=sum(.$`Under (Over) Budget YTD Q3`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!grepl("total na",NFI_ACCOUNT,ignore.case = T))
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Dept")
+        writeData(wb,sheet = "Realisasi vs Budget Dept",temp.fsg2)
+      }
+      
+    }
+    
+    if(j>9 ){
+      
+      temp.fsg=fsg[[4]] %>% select(dept,
+                                   kategori,
+                                   NFI_ACCOUNT,
+                                   `detail akun`,
+                                   desc.detail,
+                                   `YTD-Budget Q4`,
+                                   `YTD-Encum Obl Q4`,
+                                   `YTD-Encum Inv Q4`,
+                                   `YTD-Actual Q4`,
+                                   `Under (Over) Budget YTD Q4`) %>% 
+        filter(dept==deptx[x]) %>% 
+        group_by(kategori,NFI_ACCOUNT,`detail akun`,desc.detail) %>% 
+        summarise(`YTD-Budget Q4`=sum(`YTD-Budget Q4`),
+                  `YTD-Encum Obl Q4`=sum(`YTD-Encum Obl Q4`),
+                  `YTD-Encum Inv Q4`=sum(`YTD-Encum Inv Q4`),
+                  `YTD-Actual Q4`=sum(`YTD-Actual Q4`),
+                  `Under (Over) Budget YTD Q4`=sum(`Under (Over) Budget YTD Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q4`=`YTD-Encum Obl Q4`+`YTD-Encum Inv Q4`+`YTD-Actual Q4`) %>% 
+        select(-6:-8) %>% 
+        select(1:5,7,6)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              mutate(`Ledger Acc Desc`=gsub('[0-9]+ ', '', NFI_ACCOUNT)) %>% 
+              left_join(parent.asset) %>% 
+              ungroup() %>% 
+              select(1,9,3:7) %>% 
+              rename(NFI_ACCOUNT=2) %>% 
+              mutate(`detail akun`=NA,desc.detail=NA) %>% 
+              group_by(kategori,NFI_ACCOUNT,`detail akun`,desc.detail) %>% 
+              summarise(`YTD-Budget Q4`=sum(`YTD-Budget Q4`),
+                        `Total Actual YTD Q4`=sum(`Total Actual YTD Q4`),
+                        `Under (Over) Budget YTD Q4`=sum(`Under (Over) Budget YTD Q4`)) %>% 
+              ungroup() %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T),
+                                               `Total Actual YTD Q4`=sum(.$`Total Actual YTD Q4`,na.rm=T),
+                                               `Under (Over) Budget YTD Q4`=sum(.$`Under (Over) Budget YTD Q4`,na.rm=T)))) 
+            temp.fsg1=as.data.frame(temp.fsg1) 
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T),
+                                               `Total Actual YTD Q4`=sum(.$`Total Actual YTD Q4`,na.rm=T),
+                                               `Under (Over) Budget YTD Q4`=sum(.$`Under (Over) Budget YTD Q4`,na.rm=T)))) %>% 
+              group_by(kategori,NFI_ACCOUNT) %>% 
+              do(plyr::rbind.fill(.,data_frame(NFI_ACCOUNT=paste0("Total ",first(.$NFI_ACCOUNT)),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T),
+                                               `Total Actual YTD Q4`=sum(.$`Total Actual YTD Q4`,na.rm=T),
+                                               `Under (Over) Budget YTD Q4`=sum(.$`Under (Over) Budget YTD Q4`,na.rm=T))))
+            temp.fsg1=as.data.frame(temp.fsg1) %>% filter(!grepl("total na",NFI_ACCOUNT,ignore.case = T))
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Dept")
+        writeData(wb,sheet = "Realisasi vs Budget Dept",temp.fsg2)
+      }
+      
+    }
+    
+    test1=master.actual %>% 
+      filter(month(`GL date`)%in% (1:(j+1))) %>% 
+      filter(`Dept Pemilik`==deptx[x]) %>% 
+      filter(Klasifikasi!="Other") %>% 
+      arrange(`GL date`)
+    
+    addWorksheet(wb, "Detail Actual")
+    writeData(wb,sheet = "Detail Actual",test1)
+    
+    test2=master.encum %>% 
+      filter(month(`GL date`)%in% (1:(j+1))) %>% 
+      filter(`Dept Pemilik`==deptx[x]) %>% 
+      filter(Klasifikasi!="Other")%>% 
+      arrange(`GL date`)
+    
+    addWorksheet(wb, "Detail Encum")
+    writeData(wb,sheet = "Detail Encum",test2)
+    
+    saveWorkbook(wb, file = paste0("All Report/",list.bulan[j]," ",format.Date(Sys.Date(), "%y"),"/01 Report Realisasi vs Budget/",list.dept.nonplant$`Folder Divisi`[x],"/",list.no.bulan[j]," ",list.dept.nonplant$Dept[x],".xlsx"), overwrite = TRUE)
+    print(paste0("file Realisasi vs Budget bulan ",list.bulan[j]," ",format.Date(Sys.Date(), "%y")," untuk div.",list.dept.nonplant$`Folder Divisi`[x]," dept. ",list.dept.nonplant$Dept[x]," berhasil dibuat."))
+    
+    # cetak report pengguna
+    temp.pengguna=master.pengguna %>% select(`Dept Pengguna`,
+                                             `Divisi Pemilik`,
+                                             `Dept Pemilik`,
+                                             desc.akun,
+                                             8:20) %>% 
+      rename(Jan=5,Feb=6,Mar=7,Apr=8,May=9,Jun=10,Jul=11,Aug=12,Sep=13,Oct=14,Nov=15,Dec=16) %>% 
+      filter(`Dept Pengguna`==deptx[x]) %>% 
+      group_by(`Dept Pengguna`,`Divisi Pemilik`,`Dept Pemilik`,desc.akun) %>% 
+      summarise(`Jan`=sum(`Jan`),
+                `Feb`=sum(`Feb`),
+                `Mar`=sum(`Mar`),
+                `Apr`=sum(`Apr`),
+                `May`=sum(`May`),
+                `Jun`=sum(`Jun`),
+                `Jul`=sum(`Jul`),
+                `Aug`=sum(`Aug`),
+                `Sep`=sum(`Sep`),
+                `Oct`=sum(`Oct`),
+                `Nov`=sum(`Nov`),
+                `Dec`=sum(`Dec`),
+                Total=sum(Total))
+    templist=list()
+    tempkat=unique(temp.pengguna$`Dept Pemilik`)
+    if(length(tempkat)>0){
+      for(i in 1:length(tempkat)){
+        temp.pengguna1=temp.pengguna %>% 
+          filter(`Dept Pemilik`==tempkat[i]) %>% 
+          group_by(`Dept Pemilik`) %>% 
+          do(plyr::rbind.fill(.,data_frame(`Dept Pemilik`=paste0("Total ",first(.$`Dept Pemilik`)),
+                                           `Jan`=sum(.$`Jan`,na.rm=T),
+                                           `Feb`=sum(.$`Feb`,na.rm=T),
+                                           `Mar`=sum(.$`Mar`,na.rm=T),
+                                           `Apr`=sum(.$`Apr`,na.rm=T),
+                                           `May`=sum(.$`May`,na.rm=T),
+                                           `Jun`=sum(.$`Jun`,na.rm=T),
+                                           `Jul`=sum(.$`Jul`,na.rm=T),
+                                           `Aug`=sum(.$`Aug`,na.rm=T),
+                                           `Sep`=sum(.$`Sep`,na.rm=T),
+                                           `Oct`=sum(.$`Oct`,na.rm=T),
+                                           `Nov`=sum(.$`Nov`,na.rm=T),
+                                           `Dec`=sum(.$`Dec`,na.rm=T),
+                                           Total=sum(.$Total,na.rm=T))))
+        kolom_final = c(colnames(temp.pengguna1)[1],
+                        colnames(temp.pengguna1)[2],
+                        colnames(temp.pengguna1)[3],
+                        colnames(temp.pengguna1)[4],
+                        paste(colnames(temp.pengguna1)[5],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[6],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[7],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[8],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[9],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[10],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[11],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[12],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[13],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[14],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[15],"-",format.Date(Sys.Date(), "%y")),
+                        paste(colnames(temp.pengguna1)[16],"-",format.Date(Sys.Date(), "%y")),
+                        colnames(temp.pengguna1)[17]
+        )
+        colnames(temp.pengguna1) = kolom_final
+        templist[[i]]=temp.pengguna1
+      }
+      temp.pengguna2<-do.call(plyr::rbind.fill,templist)
+      write.xlsx(temp.pengguna2,paste0("All Report/",list.bulan[j]," ",format.Date(Sys.Date(), "%y"),"/02 Report Pengguna/",list.dept.nonplant$`Folder Divisi`[x],"/",list.no.bulan[j]," ",list.dept.nonplant$Dept[x]," RP.xlsx"), overwrite = TRUE)
+      print(paste0("file Report Pengguna bulan ",list.bulan[j]," ",format.Date(Sys.Date(), "%y")," untuk div.",list.dept.nonplant$`Folder Divisi`[x]," dept. ",list.dept.nonplant$Dept[x]," berhasil dibuat."))
+    }
+    else 
+      print(paste0("file Report Pengguna bulan ",list.bulan[j]," ",format.Date(Sys.Date(), "%y")," untuk div.",list.dept.nonplant$`Folder Divisi`[x]," dept. ",list.dept.nonplant$Dept[x]," tidak tersedia."))
+  }
+}
+```
+
+## 4.8 Step 8. Pembagian Report Divisi
+
+Proses step ini sama persis dengan proses pembagian di step sebelumnya. Yang membedakan hanya pembagian reportnya yaitu per divisi.
+
+```{r}
+#pembagian untuk divisi
+
+divx=unique(master.fsg$Divisi)
+
+for(x in 1:length(divx)){
+  
+  for(j in 1:(month(Sys.Date())-1)){
+    wb <- createWorkbook()
+    
+    if(j<4){
+      temp.fsg=fsg[[1]] %>% select(Divisi,kategori,
+                                   dept,
+                                   `YTD-Budget Q1`,
+                                   `YTD-Encum Obl Q1`,
+                                   `YTD-Encum Inv Q1`,
+                                   `YTD-Actual Q1`,
+                                   `Under (Over) Budget YTD Q1`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(Divisi==divx[x]) %>% #filter divisi
+        group_by(kategori,dept) %>% 
+        summarise(`YTD-Budget Q1`=sum(`YTD-Budget Q1`),
+                  `YTD-Encum Obl Q1`=sum(`YTD-Encum Obl Q1`),
+                  `YTD-Encum Inv Q1`=sum(`YTD-Encum Inv Q1`),
+                  `YTD-Actual Q1`=sum(`YTD-Actual Q1`),
+                  `Under (Over) Budget YTD Q1`=sum(`Under (Over) Budget YTD Q1`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q1`=`YTD-Encum Obl Q1`+`YTD-Encum Inv Q1`+`YTD-Actual Q1`) %>% 
+        select(-4:-6) %>% 
+        select(1:3,6,4,5)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){ #pivoting nilai-nilai di data FSG untuk kategori Asset
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q1`=sum(.$`YTD-Budget Q1`,na.rm=T),
+                                               `Total Actual YTD Q1`=sum(.$`Total Actual YTD Q1`),
+                                               `Under (Over) Budget YTD Q1`=sum(.$`Under (Over) Budget YTD Q1`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){ #pivoting nilai-nilai di data FSG untuk kategori Expenses
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q1`=sum(.$`YTD-Budget Q1`,na.rm=T),
+                                               `Total Actual YTD Q1`=sum(.$`Total Actual YTD Q1`),
+                                               `Under (Over) Budget YTD Q1`=sum(.$`Under (Over) Budget YTD Q1`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            templist[[i]]=temp.fsg1
+          }
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Div")
+        writeData(wb,sheet = "Realisasi vs Budget Div",temp.fsg2)
+      }
+      
+    }
+    
+    if(j<7 & j>3){
+      
+      temp.fsg=fsg[[2]] %>% select(Divisi,kategori,
+                                   dept,
+                                   `YTD-Budget Q2`,
+                                   `YTD-Encum Obl Q2`,
+                                   `YTD-Encum Inv Q2`,
+                                   `YTD-Actual Q2`,
+                                   `Under (Over) Budget YTD Q2`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(Divisi==divx[x]) %>% #filter divisi
+        group_by(kategori,dept) %>% 
+        summarise(`YTD-Budget Q2`=sum(`YTD-Budget Q2`),
+                  `YTD-Encum Obl Q2`=sum(`YTD-Encum Obl Q2`),
+                  `YTD-Encum Inv Q2`=sum(`YTD-Encum Inv Q2`),
+                  `YTD-Actual Q2`=sum(`YTD-Actual Q2`),
+                  `Under (Over) Budget YTD Q2`=sum(`Under (Over) Budget YTD Q2`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q2`=`YTD-Encum Obl Q2`+`YTD-Encum Inv Q2`+`YTD-Actual Q2`) %>% 
+        select(-4:-6) %>% 
+        select(1:3,6,4,5)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){ #pivoting nilai-nilai di data FSG untuk kategori Asset
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q2`=sum(.$`YTD-Budget Q2`,na.rm=T),
+                                               `Total Actual YTD Q2`=sum(.$`Total Actual YTD Q2`),
+                                               `Under (Over) Budget YTD Q2`=sum(.$`Under (Over) Budget YTD Q2`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T))))
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){ #pivoting nilai-nilai di data FSG untuk kategori Expenses
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q2`=sum(.$`YTD-Budget Q2`,na.rm=T),
+                                               `Total Actual YTD Q2`=sum(.$`Total Actual YTD Q2`),
+                                               `Under (Over) Budget YTD Q2`=sum(.$`Under (Over) Budget YTD Q2`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) 
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Div")
+        writeData(wb,sheet = "Realisasi vs Budget Div",temp.fsg2)
+      }
+      
+    }
+    
+    if(j<10 & j>6){
+      
+      temp.fsg=fsg[[3]] %>% select(Divisi,kategori,
+                                   dept,
+                                   `YTD-Budget Q3`,
+                                   `YTD-Encum Obl Q3`,
+                                   `YTD-Encum Inv Q3`,
+                                   `YTD-Actual Q3`,
+                                   `Under (Over) Budget YTD Q3`,
+                                   `YTD-Budget Q4`) %>% 
+        filter(Divisi==divx[x]) %>% #filter divisi
+        group_by(kategori,dept) %>% 
+        summarise(`YTD-Budget Q3`=sum(`YTD-Budget Q3`),
+                  `YTD-Encum Obl Q3`=sum(`YTD-Encum Obl Q3`),
+                  `YTD-Encum Inv Q3`=sum(`YTD-Encum Inv Q3`),
+                  `YTD-Actual Q3`=sum(`YTD-Actual Q3`),
+                  `Under (Over) Budget YTD Q3`=sum(`Under (Over) Budget YTD Q3`),
+                  `YTD-Budget Q4`=sum(`YTD-Budget Q4`))%>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q3`=`YTD-Encum Obl Q3`+`YTD-Encum Inv Q3`+`YTD-Actual Q3`) %>% 
+        select(-4:-6) %>% 
+        select(1:3,6,4,5)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){ #pivoting nilai-nilai di data FSG untuk kategori Asset
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q3`=sum(.$`YTD-Budget Q3`,na.rm=T),
+                                               `Total Actual YTD Q3`=sum(.$`Total Actual YTD Q3`),
+                                               `Under (Over) Budget YTD Q3`=sum(.$`Under (Over) Budget YTD Q3`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) 
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){ #pivoting nilai-nilai di data FSG untuk kategori Expenses
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q3`=sum(.$`YTD-Budget Q3`,na.rm=T),
+                                               `Total Actual YTD Q3`=sum(.$`Total Actual YTD Q3`),
+                                               `Under (Over) Budget YTD Q3`=sum(.$`Under (Over) Budget YTD Q3`,na.rm=T),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T)))) 
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Div")
+        writeData(wb,sheet = "Realisasi vs Budget Div",temp.fsg2)
+      }
+      
+    }
+    
+    if(j>9 ){
+      
+      temp.fsg=fsg[[4]] %>% select(Divisi,kategori,
+                                   dept,
+                                   `YTD-Budget Q4`,
+                                   `YTD-Encum Obl Q4`,
+                                   `YTD-Encum Inv Q4`,
+                                   `YTD-Actual Q4`,
+                                   `Under (Over) Budget YTD Q4`) %>% 
+        filter(Divisi==divx[x]) %>% #filter divisi
+        group_by(kategori,dept) %>% 
+        summarise(`YTD-Budget Q4`=sum(`YTD-Budget Q4`),
+                  `YTD-Encum Obl Q4`=sum(`YTD-Encum Obl Q4`),
+                  `YTD-Encum Inv Q4`=sum(`YTD-Encum Inv Q4`),
+                  `YTD-Actual Q4`=sum(`YTD-Actual Q4`),
+                  `Under (Over) Budget YTD Q4`=sum(`Under (Over) Budget YTD Q4`)) %>% 
+        ungroup() %>% 
+        mutate(`Total Actual YTD Q4`=`YTD-Encum Obl Q4`+`YTD-Encum Inv Q4`+`YTD-Actual Q4`) %>% 
+        select(-4:-6) %>%
+        select(1:3,5,4)
+      templist=list()
+      tempkat=unique(temp.fsg$kategori)
+      if(length(tempkat)>0){
+        for(i in 1:length(tempkat)){
+          if (tempkat[i]=="Asset"){ #pivoting nilai-nilai di data FSG untuk kategori Asset
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Asset") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T),
+                                               `Total Actual YTD Q4`=sum(.$`Total Actual YTD Q4`),
+                                               `Under (Over) Budget YTD Q4`=sum(.$`Under (Over) Budget YTD Q4`,na.rm=T)))) 
+            templist[[i]]=temp.fsg1
+          }
+          
+          if (tempkat[i]=="Expenses"){ #pivoting nilai-nilai di data FSG untuk kategori Expenses
+            temp.fsg1=temp.fsg %>% 
+              filter(kategori=="Expenses") %>% 
+              group_by(kategori) %>% 
+              do(plyr::rbind.fill(.,data_frame(kategori=paste0("Total ",first(.$kategori)),
+                                               `YTD-Budget Q4`=sum(.$`YTD-Budget Q4`,na.rm=T),
+                                               `Total Actual YTD Q4`=sum(.$`Total Actual YTD Q4`),
+                                               `Under (Over) Budget YTD Q4`=sum(.$`Under (Over) Budget YTD Q4`,na.rm=T)))) 
+            templist[[i]]=temp.fsg1
+          }
+          
+        }
+        temp.fsg2<-do.call(plyr::rbind.fill,templist)
+        addWorksheet(wb, "Realisasi vs Budget Div")
+        writeData(wb,sheet = "Realisasi vs Budget Div",temp.fsg2)
+      }
+      
+    }
+    
+    saveWorkbook(wb, file = paste0("All Report/",list.bulan[j]," ",format.Date(Sys.Date(), "%y"),"/03 Report Divisi/",list.no.bulan[j]," Report Divisi ",divx[x],".xlsx"), overwrite = TRUE)
+    print(paste0("file Report Divisi ",divx[x]," bulan ",list.bulan[j]," ",format.Date(Sys.Date(), "%y")," berhasil dibuat."))
+  }
+}
+```
+
+> Jika ada yang perlu didiskusikan mengenai "Helpbook Otomasi Report Finance", bisa langsung hubungi nicodemus.sigit@nutrifood.co.id / nsigitsutanto@gmail.com
+
+
+
+
+
