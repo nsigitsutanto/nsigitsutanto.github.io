@@ -2,7 +2,9 @@
 title: "Helpbook Otomasi Report Finance"
 author: "Nicodemus Sigit Sutanto"
 date: "8/8/2021"
-output: html_document
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
